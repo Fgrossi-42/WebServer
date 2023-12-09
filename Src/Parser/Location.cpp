@@ -8,7 +8,7 @@ Location::~Location()
 {
 }
 
-Location::Locations(std::string filename)
+Location::Location(std::string filename)
 {
 	std::string line;
 	std::string word;
@@ -26,14 +26,13 @@ Location::Locations(std::string filename)
 			if (word == "{")
 			{
 				while (getline(file, line))
-				{E\\E
+				{
 					std::istringstream iss(line);
 					iss >> word;
 					if (word == "methods")
 					{
-						while (word != NULL)
+						while (iss >> word)
 						{
-							iss >> word;
 							methods += clean_word(word);
 						}
 					}
@@ -62,17 +61,15 @@ Location::Locations(std::string filename)
 					}
 					else if (word == "cgi_path")
 					{
-						while(word != NULL)
+						while(iss >> word)
 						{
-							iss >> word;
 							cgi_path = clean_word(word);
 						}
 					}
 					else if (word == "cgi_ext")
 					{
-						while(word != NULL)
+						while(iss >> word)
 						{
-							iss >> word;
 							cgi_ext = clean_word(word);
 						}
 					}

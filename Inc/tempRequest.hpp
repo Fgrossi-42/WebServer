@@ -1,35 +1,38 @@
+#pragma once
+#include "Webserver.hpp"
 #include <iostream>
 
 class Request
 {
 	private:
 	Request();
-	const char *_string;
-	bool GET = 0;
-	bool POST = 0;
-	bool DELETE = 0;
-	const char *_http;
-	const char *_user;
-	const char *_host;
-	const char *_contenttype;
-	const char *_contentlength;
-	const char *_language;
-	const char *_encoding;
-	const char *_connection;
-	const char *_infos;
+	bool GET;
+	bool POST;
+	bool DELETE;
+	std::string _http;
+	std::string _user;
+	std::string _host;
+	std::string _contenttype;
+	std::string _contentlength;
+	std::string _language;
+	std::string _encoding;
+	std::string _connection;
+	std::string _infos;
 
 	public:
-	void beginparsing();
+	void beginparsing(std::string file);
 	int	stringCompare(std::string str1, std::string str2, size_t pos);
-	Request(const char *string);
+	Request(std::string filename);
 	~Request();
-	const char *Get_User();
-	const char *Get_Host();
-	const char *Get_ContentType();
-	const char *Get_ContentLength();
-	const char *Get_Language();
-	const char *Get_Encoding();
-	const char *Get_Connection();
-	const char *Get_Infos();
+	std::string Get_User();
+	std::string Get_Host();
+	std::string Get_ContentType();
+	std::string Get_ContentLength();
+	std::string Get_Language();
+	std::string Get_Encoding();
+	std::string Get_Connection();
+	std::string Get_Infos();
+	void PrintALL();
+	std::string cpy(std::string word, std::istringstream *iss);
 };
 

@@ -1,7 +1,6 @@
 NAME = webserv
 
-SRCS = Src/Parser/Parser.cpp Src/Webserver/main.cpp Src/Webserver/Webserver.cpp Src/Parser/Location.cpp
-
+SRCS = Src/Parser/Parser.cpp Src/Webserver/main.cpp Src/Webserver/Webserver.cpp Src/Parser/Location.cpp Src/Parser/tempRequest.cpp
 # HEADERS	= Inc/Webserv.hpp Inc/Parser.hpp Inc/Request.hpp Inc/Response.hpp Inc/Server.hpp Inc/Location.hpp Inc/CGI.hpp Inc/Utils.hpp Inc/Config.hpp Inc/ConfigParser.hpp Inc/ConfigParserUtils.hpp Inc/ConfigParserException.hpp Inc/ConfigP
 
 OBJS = $(SRCS:.cpp=.o)

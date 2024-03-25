@@ -1,32 +1,52 @@
 NAME = webserv
 
-SRCS = Src/Parser/Parser.cpp Src/Webserver/main.cpp Src/Webserver/Webserver.cpp Src/Parser/Location.cpp Src/Parser/tempRequest.cpp
-# HEADERS	= Inc/Webserv.hpp Inc/Parser.hpp Inc/Request.hpp Inc/Response.hpp Inc/Server.hpp Inc/Location.hpp Inc/CGI.hpp Inc/Utils.hpp Inc/Config.hpp Inc/ConfigParser.hpp Inc/ConfigParserUtils.hpp Inc/ConfigParserException.hpp Inc/ConfigP
+S		= srcs/
+O		= objs/
+I		= incs/
 
-OBJS = $(SRCS:.cpp=.o)
+SRCS =  Client.cpp \
+		Config.cpp \
+		ConfigFile.cpp \
+		Routes.cpp \
+		RequestHandler.cpp \
+		ResponseHandler.cpp \
+		Server.cpp \
+		main.cpp
 
-CXX = c++
+CC = c++
 
-CXXFLAGS = -Wall -Wextra -Werror -std=c++98
-CXXFLAGS += -g3 
+FLAGS = -Wall -Wextra -Werror -std=c++98
 
-RM = rm -rf
+SRCS	:= $(foreach file,$(SRCS),$S$(file))
+OBJS	= $(SRCS:$S%=$O%.o)
+DEPS	= $(SRCS:$S%=$D%.d)
 
-RESET = "\033[0m"
-BLACK = "\033[1m\033[37m"
+all : $(NAME)
 
-all:
-	@$(MAKE) $(NAME) -j5
-$(NAME) : $(OBJS)
-	$(CXX) $(CXXFLAGS) $(OBJS) -o $(NAME)
-	@echo $(BLACK)-webserv compiled 🌐 $(RESET)
+$O:
+	@mkdir $@
 
-clean:
-	$(RM) $(OBJS)
+$(OBJS): | $O
 
-fclean: clean
-	$(RM) $(NAME)
+$(OBJS): $O%.o: $S%
+	@echo "Compiling $^: "
+	@$(CC) $(FLAGS) -c $< -o $@
+	@echo "✓"
 
-re: 	fclean all
+$(NAME): $(OBJS)
+	@echo "Assembling $(NAME)"
+	@$(CC) $^ -o $@
+	@mkdir -p uploads
 
-.PHONY: all clean fclean re
+clean :
+	rm -rf $(O)
+	rm -rf uploads
+	find . -name "*.index.html" -type f -delete
+
+fclean : clean
+	rm -rf ${NAME}
+
+re : fclean all
+
+
+.PHONY:		all clean fclean re

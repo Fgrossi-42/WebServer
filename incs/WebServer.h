@@ -26,7 +26,7 @@
 # include <ctype.h>
 # include <sys/stat.h>
 # include <sys/socket.h>
-# include <sys/event.h>
+# include <sys/select.h>
 # include <sys/wait.h>
 # include <arpa/inet.h>
 # include <netinet/in.h>

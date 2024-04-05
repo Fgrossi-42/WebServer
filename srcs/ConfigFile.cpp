@@ -8,7 +8,7 @@ ConfigFile::ConfigFile(const std::string& file) : _file(file.c_str())
 		buffer << _file.rdbuf();
 		if(buffer.fail())
 		{
-			std::cerr << "Error: Invalid configuration file: " << file << std::endl;
+			std::cerr << "Error: Invalid Config file: " << file << std::endl;
 			exit(1);
 		}
 		_content = buffer.str();
@@ -20,7 +20,7 @@ ConfigFile::ConfigFile(const std::string& file) : _file(file.c_str())
 	}
 	catch(const std::exception& e)
 	{
-		std::cerr << "Error: Parsing configuration file gone wrong" << std::endl;
+		std::cerr << "Error: Parsing Config file gone wrong" << std::endl;
 		exit(1);
 	}
 }

@@ -15,7 +15,7 @@ SRCS =  Client.cpp \
 
 CC = c++
 
-FLAGS = -Wall -Wextra -Werror -std=c++98
+FLAGS = -Wall -Wextra -Werror -std=c++11
 
 SRCS	:= $(foreach file,$(SRCS),$S$(file))
 OBJS	= $(SRCS:$S%=$O%.o)

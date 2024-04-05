@@ -13,7 +13,7 @@ class ResponseHandler
 	private:
 		Server *_server;
 		RequestHandler *_request;
-		Configuration *_config;
+		Configs*_config;
 		std::map<int, std::string> _code;
 		std::string _path;
 		std::string _content;
@@ -29,10 +29,10 @@ class ResponseHandler
 		void setEnv();
 		char **getEnvAsCstrArray() const;
 		std::string executeCgi(const std::vector<std::string>& cgiPas);
-		ConfigurationRoute getSimilarRoute(std::string path) const;
+		ConfigsRoute getSimilarRoute(std::string path) const;
 
 	public:
-		ResponseHandler(Server *server, RequestHandler *request, Configuration *config);
+		ResponseHandler(Server *server, RequestHandler *request, Configs *config);
 		ResponseHandler(RequestHandler *request, std::pair<std::string, std::string> error = std::make_pair("500", DEFAULT_ERROR_PATH));
 		~ResponseHandler();
 		std::string createResp(int code) const;

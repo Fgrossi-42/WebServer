@@ -242,7 +242,7 @@ ConfigsRoute ResponseHandler::getSimilarRoute(std::string path) const
 	std::map<std::string, ConfigsRoute> tmp = _server->GetConfig().GetConfigsRoute();
 	if (tmp.find(std::string("/")) == tmp.end())
 	{
-		std::cerr << RED << "Error: Parsing configuration file is gone wrong" << RESET << std::endl;
+		std::cerr << RED << "Error: Parsing Config file is gone wrong" << RESET << std::endl;
 		exit(1);
 	}
 	return tmp.find(std::string("/"))->second;

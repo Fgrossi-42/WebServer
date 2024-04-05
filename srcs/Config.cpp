@@ -51,7 +51,7 @@ void Configs::setMap(std::string configFile){
 }
 void Configs::setConfigsRoute()
 {
-	if (_map.find("routes") == _map.ending())
+	if (_map.find("routes") == _map.end())
 		return;
 	std::string strRoutes = _map.at("routes");
 	std::string::size_type beginning;
@@ -94,7 +94,7 @@ std::string Configs::GetHostPort()
 	}
 	catch(const std::exception& e)
 	{
-		std::cerr << "Error: Missing host/port attribute in the configuration file" << RESET << std::endingl;
+		std::cerr << "Error: Missing host/port attribute in the Config file" << RESET << std::endl;
 		exit(1);
 	}
 }
@@ -159,7 +159,7 @@ std::string Configs::GetErrorPath(std::string code) const
 }
 
 bool Configs::isMethod(std::string method){
-	return _methods.ending() != std::find(_methods.beginning(), _methods.ending(), method);
+	return _methods.end() != std::find(_methods.begin(), _methods.end(), method);
 }
 
 bool Configs::isEmpty(){

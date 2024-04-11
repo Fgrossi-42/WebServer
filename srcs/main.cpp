@@ -65,6 +65,7 @@ int main(int argc, char *argv[])
 		{
 			if (FD_ISSET(servers[i]->GetSocketfd(), &readfd))
 			{
+				std::cout << "first FD_ISSET: "<< FD_ISSET(servers[i]->GetSocketfd(), &readfd)<<std::endl;
 				ssize_t addrlen = sizeof(sockaddr);
 				int connection = accept(servers[i]->GetSocketfd(), (struct sockaddr *)(*servers[i]).GetSockAddr(), (socklen_t *)&addrlen);
 				try
@@ -92,15 +93,17 @@ int main(int argc, char *argv[])
 				bzero(buffer, 8192);
 				size_t totalBytesRead = 0;
 				int bytesRead = 0;
+				//std::cout<< FD_ISSET(servers[i]->_clients[j].first, &readfd) << std::endl;
 				if (FD_ISSET(servers[i]->_clients[j].first, &readfd))
 				{
 					do
 					{
 						bytesRead = recv(servers[i]->_clients[j].first, buffer, 8192, 0);
 						totalBytesRead += bytesRead;
+						std::cout << "totalBytesRead: "<<totalBytesRead<<std::endl;
 						if (bytesRead > 0)
 							bufferStr.append(buffer, bytesRead);
-						usleep(100);
+						usleep(100000);
 					} while (bytesRead > 0);
 					RequestHandler reqHeader = RequestHandler(bufferStr, totalBytesRead + 1);
 					try
@@ -131,7 +134,10 @@ int main(int argc, char *argv[])
 						else
 						{
 							if (!config.GetRedirectionCode())
+							{
 								resp.append(resHeader.createResp(200));
+								servers[i]->_clients[j].second = resp;
+							}
 							else
 							{
 								resp.append(resHeader.createResp(config.GetRedirectionCode()));
@@ -139,6 +145,7 @@ int main(int argc, char *argv[])
 								redir.append(config.GetRedirectionUrl());
 								redir.append("\r\n");
 								resp.insert(resp.find('\n') + 1, redir);
+								servers[i]->_clients[j].second = resp;
 							}
 							if (!resHeader.getError().first.empty())
 							{
@@ -166,12 +173,12 @@ int main(int argc, char *argv[])
 					servers[i]->_clients[j].second = "";
 				} while (resp.size());
 				bufferStr.clear();
-				if(servers[i]->_clients[j].second.empty())
-				{
-					FD_CLR(servers[i]->_clients[j].first, &active);
-					close(servers[i]->_clients[j].first);
-					servers[i]->_clients.erase(servers[i]->_clients.begin() + j);
-				}
+				// if(servers[i]->_clients[j].second == "")
+				// {
+				// 	FD_CLR(servers[i]->_clients[j].first, &active);
+				// 	close(servers[i]->_clients[j].first);
+				// 	servers[i]->_clients.erase(servers[i]->_clients.begin() + j);
+				// }
 				// index = findServerByFD(servers, clients.GetConnection(evList[i].ident)->evIdent);
 				// EV_SET((*servers[index]).GetEvSet(), evList[i].ident, EVFILT_READ, EV_DELETE, 0, 0, NULL);
 				// kevent(kQueue, (*servers[index]).GetEvSet(), 1, NULL, 0, NULL);

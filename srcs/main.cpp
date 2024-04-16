@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
 						bytesRead = recv(servers[i]->_clients[j].first, buffer, 8192, 0);
 						totalBytesRead += bytesRead;
 						std::cout << "totalBytesRead: "<<totalBytesRead<<std::endl;
-						if (bytesRead > 0)
+						if (bytesRead >= 0)
 							bufferStr.append(buffer, bytesRead);
 						usleep(100000);
 					} while (bytesRead > 0);

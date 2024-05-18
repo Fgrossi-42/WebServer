@@ -387,7 +387,7 @@ def process_dir(top_dir):
         index_file.close()
 
 
-UNITS_MAPPING = [
+UNITS_confVarPING = [
     (1024 ** 5, ' PB'),
     (1024 ** 4, ' TB'),
     (1024 ** 3, ' GB'),
@@ -397,7 +397,7 @@ UNITS_MAPPING = [
 ]
 
 
-def pretty_size(bytes, units=UNITS_MAPPING):
+def pretty_size(bytes, units=UNITS_confVarPING):
     for factor, suffix in units:
         if bytes >= factor:
             break

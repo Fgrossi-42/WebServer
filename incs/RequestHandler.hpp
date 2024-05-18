@@ -1,5 +1,7 @@
 #pragma once
 
+//new GetQuery, shuffles functions
+
 #include "WebServer.h"
 
 class RequestHandler
@@ -14,10 +16,10 @@ class RequestHandler
 		~RequestHandler();
 
 		std::map<std::string, std::string> GetHeaders() const;
-		std::string GetHost() const;
-		std::string GetMethod() const;
-		std::string GetBody() const;
-		std::string GetPath() const;
-		std::string GetQueryString() const;
 		std::string GetAccept() const;
+		std::string GetMethod() const;
+		std::string GetQuery() const;
+		std::string GetPath() const;
+		std::string GetBody() const;
+		std::string GetHost() const;
 };

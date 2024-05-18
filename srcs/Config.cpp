@@ -12,6 +12,28 @@ Configs::Configs(std::string configFile){
 	setMethods();
 }
 
+void Configs::setConfigsRoute()
+{
+	if (_confVar.find("routes") == _confVar.end())
+		return;
+	std::string strRoutes = _confVar.at("routes");
+	std::string::size_type beginning;
+	std::string::size_type ending = 0;
+	std::string::size_type last = 0;
+
+	do
+	{
+		beginning = strRoutes.find('{', 0);
+		ending = strRoutes.find('}', 0);
+		last = strRoutes.find('/', last);
+		_confPath.insert(std::make_pair<std::string, ConfigsRoute>(
+			strRoutes.substr(last, strRoutes.find('\n', last) - last),
+			ConfigsRoute(strRoutes.substr(beginning, ending - beginning + 1), strRoutes.substr(last, strRoutes.find('\n', last) - last))));
+		strRoutes = strRoutes.substr(ending + 1);
+		ending = strRoutes.find('}', 0);
+	} while (ending < strRoutes.size());
+}
+
 void Configs::setMap(std::string configFile){
 	std::string::size_type beginning;
 	std::string::size_type ending = 0;
@@ -25,7 +47,7 @@ void Configs::setMap(std::string configFile){
 			while(configFile.find('}', ending + 1) != std::string::npos)
 				ending = configFile.find('}', ending + 1);
 			if(ending != std::string::npos)
-				_map.insert(std::pair<std::string, std::string>(
+				_confVar.insert(std::pair<std::string, std::string>(
 					configFile.substr(1, beginning - 1), 
 					configFile.substr(beginning + 1, ending - beginning)));
 			configFile = configFile.substr(ending, 0);
@@ -38,7 +60,7 @@ void Configs::setMap(std::string configFile){
 		{
 			ending = configFile.find('\n', 0);
 			if(ending != std::string::npos)
-				_map.insert(std::pair<std::string, std::string>(
+				_confVar.insert(std::pair<std::string, std::string>(
 					configFile.substr(1, beginning - 1), 
 					configFile.substr(beginning + 1, ending - beginning - 1)));
 			configFile = configFile.substr(ending + 1);
@@ -47,62 +69,42 @@ void Configs::setMap(std::string configFile){
 	beginning = configFile.find('=', 0);
 	ending = configFile.find('\0', 0);
 	if(beginning != std::string::npos)
-		_map.insert(std::pair<std::string, std::string>(configFile.substr(1, beginning - 1), configFile.substr(beginning + 1, ending - 1)));
-}
-void Configs::setConfigsRoute()
-{
-	if (_map.find("routes") == _map.end())
-		return;
-	std::string strRoutes = _map.at("routes");
-	std::string::size_type beginning;
-	std::string::size_type ending = 0;
-	std::string::size_type last = 0;
-
-	do
-	{
-		beginning = strRoutes.find('{', 0);
-		ending = strRoutes.find('}', 0);
-		last = strRoutes.find('/', last);
-		_configsRoute.insert(std::make_pair<std::string, ConfigsRoute>(
-			strRoutes.substr(last, strRoutes.find('\n', last) - last),
-			ConfigsRoute(strRoutes.substr(beginning, ending - beginning + 1), strRoutes.substr(last, strRoutes.find('\n', last) - last))));
-		strRoutes = strRoutes.substr(ending + 1);
-		ending = strRoutes.find('}', 0);
-	} while (ending < strRoutes.size());
+		_confVar.insert(std::pair<std::string, std::string>(configFile.substr(1, beginning - 1), configFile.substr(beginning + 1, ending - 1)));
 }
 
 void Configs::setMethods(){
 	std::string::size_type beginning;
 	std::string::size_type ending = 0;
 
-	while(ending < _map["methods"].size()){
+	while(ending < _confVar["methods"].size()){
 		beginning = 0;
-		ending = _map["methods"].find(' ', 0);
+		ending = _confVar["methods"].find(' ', 0);
 		if(ending != std::string::npos){
-			_methods.push_back(_map["methods"].substr(beginning, ending));
-			_map["methods"] = _map["methods"].substr(ending + 1);
+			_methods.push_back(_confVar["methods"].substr(beginning, ending));
+			_confVar["methods"] = _confVar["methods"].substr(ending + 1);
 		}
 	}
-	_methods.push_back(_map["methods"].substr(0, _map["methods"].size()));
+	_methods.push_back(_confVar["methods"].substr(0, _confVar["methods"].size()));
 }
 
-std::string Configs::GetHostPort()
+std::map<std::string, ConfigsRoute> Configs::GetConfigsRoute()
 {
-	try
-	{
-		return _map.at("host/port");
-	}
-	catch(const std::exception& e)
-	{
-		std::cerr << "Error: Missing host/port attribute in the Config file" << RESET << std::endl;
-		exit(1);
-	}
+	return _confPath;
 }
 
-std::string Configs::GetHost()
+int Configs::GetRedir()
 {
-    std::string hp = GetHostPort();
-    return hp.substr(0,  hp.find(':', 0));
+    if (!_confVar["return"].empty())
+		return std::atoi(_confVar["return"].substr(0, 3).c_str());
+	return 0;
+}
+
+size_t Configs::GetMaxBodySize()
+{
+    std::string limitSize = _confVar["max_body_size"].c_str();
+    if(limitSize.empty())
+        return LLONG_MAX;
+    return std::atoi(limitSize.c_str());
 }
 
 unsigned int Configs::GetPort()
@@ -111,46 +113,45 @@ unsigned int Configs::GetPort()
     return std::atoi(hp.substr(hp.find(':', 0) + 1, hp.length() - hp.find(':', 0) - 1).c_str());
 }
 
-std::map<std::string, ConfigsRoute> Configs::GetConfigsRoute()
+std::string Configs::GetHost()
 {
-	return _configsRoute;
+    std::string hp = GetHostPort();
+    return hp.substr(0,  hp.find(':', 0));
 }
 
-std::string Configs::GetServerName()
+std::string Configs::GetHostPort()
 {
-    return _map["server_name"];
+	try
+	{
+		return _confVar.at("host/port");
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << "Error: Missing host/port attribute in the Config file" << RESET << std::endl;
+		exit(1);
+	}
 }
 
-size_t Configs::GetLimitSizeBody()
+std::string Configs::GetUrl()
 {
-    std::string limitSize = _map["max_body_size"].c_str();
-    if(limitSize.empty())
-        return LLONG_MAX;
-    return std::atoi(limitSize.c_str());
-}
-
-int Configs::GetRedirectionCode()
-{
-    if (!_map["return"].empty())
-		return std::atoi(_map["return"].substr(0, 3).c_str());
-	return 0;
-}
-
-std::string Configs::GetRedirectionUrl()
-{
-    std::string redir = _map["return"];
+    std::string redir = _confVar["return"];
 	if(redir.empty()){
 		int beginning = redir.find(' ', 0) + 1;
-		return _map["return"].substr(beginning, redir.size() - beginning);
+		return _confVar["return"].substr(beginning, redir.size() - beginning);
 	}
 	return std::string();
 }
 
-std::string Configs::GetErrorPath(std::string code) const
+std::string Configs::GetServerName()
+{
+    return _confVar["server_name"];
+}
+
+std::string Configs::GetPathErr(std::string code) const
 {
     try
 	{
-		return _map.at(code);
+		return _confVar.at(code);
 	}
 	catch(const std::exception& e)
 	{
@@ -163,5 +164,5 @@ bool Configs::isMethod(std::string method){
 }
 
 bool Configs::isEmpty(){
-	return _map.size() == 0;
+	return _confVar.size() == 0;
 }

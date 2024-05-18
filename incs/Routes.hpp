@@ -5,7 +5,7 @@
 class ConfigsRoute{
 	private:
 		std::string _path;
-		std::map<std::string, std::string> _map;
+		std::map<std::string, std::string> _confVar;
 		void setMap(std::string config);
 	public:
 		ConfigsRoute();

@@ -1,5 +1,7 @@
 #pragma once
 
+//shuffled variables and functions, new GetUrl, GetPathErr, GetMaxBodySize, GetRedir, _confVar, _confPath
+
 # include "WebServer.h"
 # include "Routes.hpp"
 
@@ -8,26 +10,26 @@ class ConfigsRoute;
 class Configs
 {
     private:
-    std::map<std::string, std::string> _map;
+    std::map<std::string, ConfigsRoute> _confPath; 
+    std::map<std::string, std::string> _confVar;
     std::vector<std::string> _methods;
-    std::map<std::string, ConfigsRoute> _configsRoute; 
     void setMap(std::string config);
-    void setMethods();
     void setConfigsRoute();
+    void setMethods();
 
     public:
     Configs();
     ~Configs();
     Configs(std::string config);
-    std::string GetHostPort();
-    std::string GetHost();
+    int GetRedir();
+    size_t GetMaxBodySize();
     unsigned int GetPort();
-    std::map<std::string, ConfigsRoute> GetConfigsRoute();
+    std::string GetHost();
+    std::string GetHostPort();
+    std::string GetUrl();
     std::string GetServerName();
-    size_t GetLimitSizeBody();
-    int GetRedirectionCode();
-    std::string GetRedirectionUrl();
-    std::string GetErrorPath(std::string code) const;
+    std::string GetPathErr(std::string code) const;
+    std::map<std::string, ConfigsRoute> GetConfigsRoute();
     bool isMethod(std::string method);
     bool isEmpty();
 };

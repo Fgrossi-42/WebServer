@@ -15,8 +15,8 @@ ConfigFile::ConfigFile(const std::string& file) : _file(file.c_str())
 		_configString = splitString(_content);
 		std::vector<std::string>::iterator it = _configString.begin();
 		for( ; it != _configString.end(); it++)
-			_configs.push_back(Configs(*it));
-		setMapConfigs();
+			_conf.push_back(Configs(*it));
+		setMapConf();
 	}
 	catch(const std::exception& e)
 	{
@@ -29,11 +29,11 @@ ConfigFile::~ConfigFile()
 {
 }
 
-void ConfigFile::setMapConfigs()
+void ConfigFile::setMapConf()
 {
-	std::vector<Configs>::iterator it1 = _configs.begin();
-	for( ; it1 != _configs.end(); it1++)
-		_mapConfigs[(*it1).GetHostPort()].push_back(*it1);
+	std::vector<Configs>::iterator it1 = _conf.begin();
+	for( ; it1 != _conf.end(); it1++)
+		_confVarConfigs[(*it1).GetHostPort()].push_back(*it1);
 }
 
 std::vector<std::string> ConfigFile::splitString(std::string content)
@@ -57,9 +57,9 @@ std::vector<std::string> ConfigFile::splitString(std::string content)
 
 Configs ConfigFile::GetConfig(std::string hostPort, std::string serverName)
 {
-	std::vector<Configs>::iterator it = _mapConfigs[hostPort].begin();
+	std::vector<Configs>::iterator it = _confVarConfigs[hostPort].begin();
 	Configs defaultConfig;
-	for ( ; it != _mapConfigs[hostPort].end(); it++)
+	for ( ; it != _confVarConfigs[hostPort].end(); it++)
 	{
 		if (it->GetServerName().empty())
 			defaultConfig = *it;
@@ -71,10 +71,10 @@ Configs ConfigFile::GetConfig(std::string hostPort, std::string serverName)
 
 std::map<std::string, std::vector<Configs> > ConfigFile::GetMapConfig()
 {
-	return _mapConfigs;
+	return _confVarConfigs;
 }
 
 std::vector<Configs> ConfigFile::GetConfigs()
 {
-	return _configs;
+	return _conf;
 }

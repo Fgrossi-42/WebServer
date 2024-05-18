@@ -43,6 +43,10 @@ std::map<std::string, std::string> RequestHandler::GetHeaders() const
     return _requestsMap;
 }
 
+std::string RequestHandler::GetAccept() const
+{
+    return _requestsMap.at("Accept");
+}
 
 std::string RequestHandler::GetMethod() const
 {
@@ -54,14 +58,15 @@ std::string RequestHandler::GetMethod() const
 	}
 }
 
-std::string RequestHandler::GetAccept() const
+std::string RequestHandler::GetQuery() const
 {
-    return _requestsMap.at("Accept");
-}
-
-std::string RequestHandler::GetHost() const
-{
-    return _requestsMap.at("Host").substr(0, _requestsMap.at("Host").find(':', 0));
+    std::string path = _requestsMap.at("Method").substr(_requestsMap.at("Method").find(' ', 0) + 1);
+    path = path.substr(0, path.find(' ', 0));
+    std::string::size_type index = path.find('?', 0);
+    
+    if(index != std::string::npos)
+        return path.substr(index + 1);
+    return std::string();
 }
 
 std::string RequestHandler::GetPath() const {
@@ -75,7 +80,6 @@ std::string RequestHandler::GetPath() const {
 		return path.substr(0, temp);
 }
 
-
 std::string RequestHandler::GetBody() const
 {
     try
@@ -87,14 +91,7 @@ std::string RequestHandler::GetBody() const
         return std::string();
     }
 }
-
-std::string RequestHandler::GetQueryString() const
+std::string RequestHandler::GetHost() const
 {
-    std::string path = _requestsMap.at("Method").substr(_requestsMap.at("Method").find(' ', 0) + 1);
-    path = path.substr(0, path.find(' ', 0));
-    std::string::size_type index = path.find('?', 0);
-    
-    if(index != std::string::npos)
-        return path.substr(index + 1);
-    return std::string();
+    return _requestsMap.at("Host").substr(0, _requestsMap.at("Host").find(':', 0));
 }

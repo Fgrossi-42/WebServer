@@ -85,7 +85,7 @@ void ResponseHandler::setPath()
 	std::string path = _request->GetPath();
 	ConfigsRoute route = getSimilarRoute(path);
 	if (route.GetMethods().rfind(_request->GetMethod()) == std::string::npos)
-		_error = std::make_pair("405", _config->GetErrorPath("405"));
+		_error = std::make_pair("405", _config->GetPathErr("405"));
 	std::string::size_type temp = path.rfind(route.GetPath(), 0);
 	if (temp == 0)
 		temp = route.GetPath().length();
@@ -95,7 +95,7 @@ void ResponseHandler::setPath()
 		_path = path;
 	ConfigsRoute newRoute = getSimilarRoute(_path);
 	if (newRoute.GetMethods().rfind(_request->GetMethod()) == std::string::npos)
-		_error = std::make_pair("405", _config->GetErrorPath("405"));
+		_error = std::make_pair("405", _config->GetPathErr("405"));
 	if (_path[0] == '/')
 		_path = _path.substr(1, _path.size() - 1);
 	if (_path[_path.size() - 1] == '/')
@@ -132,7 +132,7 @@ void ResponseHandler::setContent()
 	stat(_path.c_str(), &s);
 	if (access(_path.c_str(), F_OK) == 0 && access(_path.c_str(), R_OK) != 0)
 	{
-		_error = std::make_pair("403", _config->GetErrorPath("403"));
+		_error = std::make_pair("403", _config->GetPathErr("403"));
 		return ;
 	}
 	if (file.is_open() && !(s.st_mode & S_IFDIR))
@@ -181,7 +181,7 @@ void ResponseHandler::setContent()
 		}
 	}
 	else
-		_error = std::make_pair("404", _config->GetErrorPath("404"));
+		_error = std::make_pair("404", _config->GetPathErr("404"));
 	file.close();
 }
 
@@ -271,11 +271,11 @@ void ResponseHandler::setEnv() {
 	this->_env["CONTENT_TYPE"] = headers["Content-Type"];
 	this->_env["PATH_INFO"] = _path;
 	this->_env["PATH_TRANSLATED"] =_path;
-	this->_env["QUERY_STRING"] = _request->GetQueryString();
+	this->_env["QUERY_STRING"] = _request->GetQuery();
 	this->_env["REMOTEaddr"] = _config->GetHost();
 	this->_env["REMOTE_IDENT"] = headers["Authorization"];
 	this->_env["REMOTE_USER"] = headers["Authorization"];
-	this->_env["REQUEST_URI"] = _path + _request->GetQueryString();
+	this->_env["REQUEST_URI"] = _path + _request->GetQuery();
 	this->_env["UPLOAD_PATH"] = std::string(cwd) + getSimilarRoute(_request->GetPath()).GetUploadPath();
 	if (headers.find("Hostname") != headers.end())
 		this->_env["SERVER_NAME"] = headers["Hostname"];

@@ -1,6 +1,8 @@
 #ifndef RESPONSE_HANDLER_HPP
 # define RESPONSE_HANDLER_HPP
 
+//shuffles variables and funciotn, new getenvstr, settype, execCgi, getNewRoute, getType
+
 # include "WebServer.h"
 
 int execAutoindex();
@@ -11,25 +13,25 @@ class RequestHandler;
 class ResponseHandler
 {
 	private:
-		Server *_server;
-		RequestHandler *_request;
-		Configs*_config;
-		std::map<int, std::string> _code;
-		std::string _path;
-		std::string _content;
-		std::string _contentType;
 		int _contentLenght;
-		std::map<std::string, std::string> _env;
+		std::string _path;
+		std::string _contentType;
+		std::string _content;
 		std::pair<std::string, std::string> _error;
+		std::map<int, std::string> _code;
+		std::map<std::string, std::string> _env;
+		Configs*_config;
+		RequestHandler *_request;
+		Server *_server;
 
 		void setCodeMap();
 		void setPath();
 		void setContent();
-		void setContentType(std::string path, std::string type = "");
+		void setType(std::string path, std::string type = "");
 		void setEnv();
-		char **getEnvAsCstrArray() const;
-		std::string executeCgi(const std::vector<std::string>& cgiPas);
-		ConfigsRoute getSimilarRoute(std::string path) const;
+		char **GetEnvStr() const;
+		std::string execCgi(const std::vector<std::string>& cgiPas);
+		ConfigsRoute getNewRoute(std::string path) const;
 
 	public:
 		ResponseHandler(Server *server, RequestHandler *request, Configs *config);
@@ -37,7 +39,7 @@ class ResponseHandler
 		~ResponseHandler();
 		std::string createResp(int code) const;
 		std::string getRespCode(int code) const;
-		std::string getContentType() const;
+		std::string getType() const;
 		std::string getDate() const;
 		std::pair<std::string, std::string> getError() const;
 		std::string getPath()

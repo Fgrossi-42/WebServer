@@ -20,49 +20,19 @@ ResponseHandler::ResponseHandler(Server *server, RequestHandler *request, Config
 	setCodeMap();
 	setPath();
 	setContent();
-	setContentType(_path);
+	setType(_path);
 }
 
 ResponseHandler::ResponseHandler(RequestHandler *request, std::pair<std::string, std::string> error)
 	: _request(request), _path(error.second), _error(error)
 {
 	setCodeMap();
-	setContentType(_error.second);
+	setType(_error.second);
 	setContent();
 }
 
 ResponseHandler::~ResponseHandler()
 {
-}
-
-std::string ResponseHandler::createResp(int code) const
-{
-	std::string resp("HTTP/1.1 ");
-
-	if (_contentLenght == 0)
-	{
-		resp.append(to_string(204));
-		resp.append(" ");
-		resp.append(getRespCode(204));
-	}
-	else
-	{
-		resp.append(to_string(code));
-		resp.append(" ");
-		resp.append(getRespCode(code));
-	}
-	resp.append("\r\n");
-	resp.append("content-type: ");
-	resp.append(_contentType);
-	resp.append("\r\n");
-	resp.append("content-length: ");
-	resp.append(to_string(_contentLenght));
-	resp.append("\r\n");
-	resp.append(getDate());
-	resp.append("\r\n");
-	resp.append(_content);
-	resp.append("\r\n");
-	return resp;
 }
 
 void ResponseHandler::setCodeMap()
@@ -83,7 +53,7 @@ void ResponseHandler::setCodeMap()
 void ResponseHandler::setPath()
 {
 	std::string path = _request->GetPath();
-	ConfigsRoute route = getSimilarRoute(path);
+	ConfigsRoute route = getNewRoute(path);
 	if (route.GetMethods().rfind(_request->GetMethod()) == std::string::npos)
 		_error = std::make_pair("405", _config->GetPathErr("405"));
 	std::string::size_type temp = path.rfind(route.GetPath(), 0);
@@ -93,7 +63,7 @@ void ResponseHandler::setPath()
 		_path = route.GetRoot().append("/" + path.substr(temp, path.size() - temp));
 	else
 		_path = path;
-	ConfigsRoute newRoute = getSimilarRoute(_path);
+	ConfigsRoute newRoute = getNewRoute(_path);
 	if (newRoute.GetMethods().rfind(_request->GetMethod()) == std::string::npos)
 		_error = std::make_pair("405", _config->GetPathErr("405"));
 	if (_path[0] == '/')
@@ -149,11 +119,11 @@ void ResponseHandler::setContent()
 		}
 		else if (_error.first.empty() && (type == ".php" || type == ".py"))
 		{
-			ConfigsRoute route = getSimilarRoute(_request->GetPath());
+			ConfigsRoute route = getNewRoute(_request->GetPath());
 			if (route.GetCGIPath()[0] == type)
 			{
 				setEnv();
-				_content = executeCgi(route.GetCGIPath());
+				_content = execCgi(route.GetCGIPath());
 				_contentLenght = _content.size();
 			}
 			else
@@ -185,11 +155,11 @@ void ResponseHandler::setContent()
 	file.close();
 }
 
-void ResponseHandler::setContentType(std::string path, std::string type)
+void ResponseHandler::setType(std::string path, std::string type)
 {
 	ConfigsRoute route;
 	if (_request)
-		route = getSimilarRoute(_request->GetPath());
+		route = getNewRoute(_request->GetPath());
 
 	if (type != "")
 	{
@@ -215,46 +185,6 @@ void ResponseHandler::setContentType(std::string path, std::string type)
 		_contentType = "text/plain";
 }
 
-std::string ResponseHandler::getRespCode(int code) const
-{
-	return _code.at(code);
-}
-
-std::string ResponseHandler::getDate() const
-{
-	std::string date = "date: ";
-	time_t t = std::time(NULL);
-	tm* lt = std::localtime(&t);
-	char buffer[50];
-	std::strftime(buffer, 80, "%a, %d %b %Y %X", lt);
-	date.append(std::string(buffer));
-	return date;
-}
-
-ConfigsRoute ResponseHandler::getSimilarRoute(std::string path) const
-{
-	std::map<std::string, ConfigsRoute> configRoute = _config->GetConfigsRoute();
-	std::map<std::string, ConfigsRoute>::reverse_iterator it = configRoute.rbegin();
-
-	while (it != configRoute.rend()) {
-		if (path.rfind(it->first, 0) == 0)
-			return it->second;
-		it++;
-	}
-	std::map<std::string, ConfigsRoute> tmp = _server->GetConfig().GetConfigsRoute();
-	if (tmp.find(std::string("/")) == tmp.end())
-	{
-		std::cerr << RED << "Error: Parsing Config file is gone wrong" << RESET << std::endl;
-		exit(1);
-	}
-	return tmp.find(std::string("/"))->second;
-}
-
-std::pair<std::string, std::string> ResponseHandler::getError() const
-{
-	return _error;
-}
-
 void ResponseHandler::setEnv() {
 	std::map<std::string, std::string>	headers = _request->GetHeaders();
 	char cwd[9999];
@@ -276,7 +206,7 @@ void ResponseHandler::setEnv() {
 	this->_env["REMOTE_IDENT"] = headers["Authorization"];
 	this->_env["REMOTE_USER"] = headers["Authorization"];
 	this->_env["REQUEST_URI"] = _path + _request->GetQuery();
-	this->_env["UPLOAD_PATH"] = std::string(cwd) + getSimilarRoute(_request->GetPath()).GetUploadPath();
+	this->_env["UPLOAD_PATH"] = std::string(cwd) + getNewRoute(_request->GetPath()).GetUploadPath();
 	if (headers.find("Hostname") != headers.end())
 		this->_env["SERVER_NAME"] = headers["Hostname"];
 	else
@@ -287,7 +217,7 @@ void ResponseHandler::setEnv() {
 	this->_env["HTTP_COOKIE"] = headers["Cookie"];
 }
 
-char **ResponseHandler::getEnvAsCstrArray() const {
+char **ResponseHandler::GetEnvStr() const {
 	char	**env = new char*[this->_env.size() + 1];
 	int	j = 0;
 	for (std::map<std::string, std::string>::const_iterator i = this->_env.begin(); i != this->_env.end(); i++) {
@@ -300,7 +230,7 @@ char **ResponseHandler::getEnvAsCstrArray() const {
 	return env;
 }
 
-std::string ResponseHandler::executeCgi(const std::vector<std::string>& cgiPar) {
+std::string ResponseHandler::execCgi(const std::vector<std::string>& cgiPar) {
 	pid_t		pid;
 	int			saveStdin;
 	int			saveStdout;
@@ -308,7 +238,7 @@ std::string ResponseHandler::executeCgi(const std::vector<std::string>& cgiPar) 
 	std::string	newBody;
 
 	try {
-		env = this->getEnvAsCstrArray();
+		env = this->GetEnvStr();
 	}
 	catch (std::bad_alloc &e) {
 		std::cerr << RED << e.what() << RESET << std::endl;
@@ -376,4 +306,74 @@ std::string ResponseHandler::executeCgi(const std::vector<std::string>& cgiPar) 
 		exit(0);
 
 	return (newBody);
+}
+
+ConfigsRoute ResponseHandler::getNewRoute(std::string path) const
+{
+	std::map<std::string, ConfigsRoute> configRoute = _config->GetConfigsRoute();
+	std::map<std::string, ConfigsRoute>::reverse_iterator it = configRoute.rbegin();
+
+	while (it != configRoute.rend()) {
+		if (path.rfind(it->first, 0) == 0)
+			return it->second;
+		it++;
+	}
+	std::map<std::string, ConfigsRoute> tmp = _server->GetConfig().GetConfigsRoute();
+	if (tmp.find(std::string("/")) == tmp.end())
+	{
+		std::cerr << RED << "Error: Parsing Config file is gone wrong" << RESET << std::endl;
+		exit(1);
+	}
+	return tmp.find(std::string("/"))->second;
+}
+
+std::string ResponseHandler::createResp(int code) const
+{
+	std::string resp("HTTP/1.1 ");
+
+	if (_contentLenght == 0)
+	{
+		resp.append(to_string(204));
+		resp.append(" ");
+		resp.append(getRespCode(204));
+	}
+	else
+	{
+		resp.append(to_string(code));
+		resp.append(" ");
+		resp.append(getRespCode(code));
+	}
+	resp.append("\r\n");
+	resp.append("content-type: ");
+	resp.append(_contentType);
+	resp.append("\r\n");
+	resp.append("content-length: ");
+	resp.append(to_string(_contentLenght));
+	resp.append("\r\n");
+	resp.append(getDate());
+	resp.append("\r\n");
+	resp.append(_content);
+	resp.append("\r\n");
+	return resp;
+}
+
+std::string ResponseHandler::getRespCode(int code) const
+{
+	return _code.at(code);
+}
+
+std::string ResponseHandler::getDate() const
+{
+	std::string date = "date: ";
+	time_t t = std::time(NULL);
+	tm* lt = std::localtime(&t);
+	char buffer[50];
+	std::strftime(buffer, 80, "%a, %d %b %Y %X", lt);
+	date.append(std::string(buffer));
+	return date;
+}
+
+std::pair<std::string, std::string> ResponseHandler::getError() const
+{
+	return _error;
 }
